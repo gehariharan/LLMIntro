@@ -3,6 +3,7 @@
 This repository contains a collection of chatbot implementations using Large Language Models (LLMs), with a focus on practical applications and advanced features like web search integration and conversation memory.
 
 ![Republic TV Chatbot](https://img.shields.io/badge/Chatbot-Republic%20TV%20Style-red)
+![Bluey Chatbot](https://img.shields.io/badge/Chatbot-Bluey%20Style-blue)
 ![LangChain](https://img.shields.io/badge/Framework-LangChain-blue)
 ![Groq](https://img.shields.io/badge/LLM-Groq-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
@@ -12,17 +13,20 @@ This repository contains a collection of chatbot implementations using Large Lan
 - **Conversational AI**: Natural language interactions with context awareness
 - **Web Search Integration**: Automatic web search when the chatbot doesn't know an answer
 - **Memory System**: Long-term memory to remember previous conversations
-- **Custom Personality**: Chatbot with the speaking style of Arnab Goswami (Indian news anchor)
+- **Custom Personalities**:
+  - Republic TV style chatbot with Arnab Goswami's speaking style
+  - Child-friendly Bluey chatbot with playful, imaginative responses
 - **Debug Mode**: Detailed view of what's happening behind the scenes
 - **User-friendly Interface**: Built with Gradio for easy interaction
 
 ## 📋 Project Structure
 
 ### Main Components
-- `chatbotwithSearch.py`: Main implementation with search and memory capabilities
-- `chatbotwithSearch&memory.py`: Alternative implementation with memory features
-- `config.py`: Configuration file for API keys and model settings
-- `chatbot_memory.json`: File that stores conversation memories
+- `tvanchorbot.py`: Republic TV style chatbot with search and memory capabilities
+- `bluebot.py`: Bluey-themed chatbot for children with search and memory
+- `config.py.template`: Template for configuration file (copy to config.py and add your API keys)
+- `chatbot_memory.json`: File that stores Republic TV chatbot memories
+- `bluey_memory.json`: File that stores Bluey chatbot memories
 
 ### Additional Scripts
 - `gradiochatbot.py`: Simple Gradio-based chatbot implementation
@@ -49,25 +53,36 @@ This repository contains a collection of chatbot implementations using Large Lan
 
 2. Install required packages:
    ```bash
-   pip install langchain langchain-groq gradio duckduckgo-search
+   pip install langchain langchain-groq gradio duckduckgo-search python-dotenv
    ```
 
-3. Create a `config.py` file with your API keys:
-   ```python
-   GROQ_API_KEY = "your_groq_api_key_here"
-   GROQ_MODEL_NAME = "llama3-70b-8192"  # or your preferred model
+3. Set up your configuration (choose one method):
+
+   **Option 1: Using config.py (Basic)**
+   ```bash
+   cp config.py.template config.py
+   # Edit config.py with your API keys
    ```
+
+   **Option 2: Using environment variables (More Secure)**
+   ```bash
+   # Create a .env file with your API keys
+   echo "GROQ_API_KEY=your_groq_api_key_here" > .env
+   echo "GROQ_MODEL_NAME=llama3-70b-8192" >> .env
+   ```
+
+   ⚠️ **SECURITY WARNING**: Never commit your `config.py` or `.env` files to version control. Both files are included in `.gitignore` to prevent accidental exposure of API keys.
 
 ### Running the Scripts
 
-#### Main Chatbot with Search and Memory
+#### Republic TV Style Chatbot
 ```bash
-python chatbotwithSearch.py
+python tvanchorbot.py
 ```
 
-#### Alternative Chatbot Implementation
+#### Bluey Style Chatbot for Children
 ```bash
-python "chatbotwithSearch&memory.py"
+python bluebot.py
 ```
 
 #### Simple Gradio Chatbot
@@ -106,7 +121,7 @@ Each script will start a Gradio web interface (where applicable), typically acce
 
 1. User sends a message through the interface
 2. The chatbot processes the message with context from previous conversation
-3. If the chatbot can answer directly, it responds in Arnab Goswami's style
+3. If the chatbot can answer directly, it responds in the appropriate style (Arnab Goswami or Bluey)
 4. If the chatbot needs more information, it performs a web search and uses the results to inform its response
 5. Conversations can be summarized and stored in memory for future reference
 
@@ -114,22 +129,32 @@ Each script will start a Gradio web interface (where applicable), typically acce
 
 ### Changing the Chatbot Personality
 
-Modify the `BASE_SYSTEM_PROMPT` constant in `chatbotwithSearch.py` to change the chatbot's personality and behavior.
+- **Republic TV Style**: Modify the `BASE_SYSTEM_PROMPT` constant in `tvanchorbot.py`
+- **Bluey Style**: Modify the `SYSTEM_PROMPT` constant in `bluebot.py`
 
 ### Disabling Debug Mode
 
-Set `DEBUG_MODE = False` at the top of `chatbotwithSearch.py` to use the simplified interface without debug information.
+Set `DEBUG_MODE = False` at the top of the respective script to use the simplified interface without debug information.
 
 ### Adjusting Memory Settings
 
 The memory system can be customized by modifying the memory-related functions and constants in the code.
 
+### Adding Custom Images
+
+Place images in the `assets` folder to customize the chatbot's appearance. The code will automatically create this folder if it doesn't exist.
+
 ## 📝 Example Usage
 
-1. **Basic Questions**: Ask general knowledge questions and get responses in Arnab Goswami's style
-2. **Current Events**: Ask about recent news (the chatbot will search for up-to-date information)
-3. **Follow-up Questions**: The chatbot maintains context, so you can ask follow-up questions
-4. **Memory Recall**: After clearing a conversation, the chatbot can still recall key information from previous chats
+### Republic TV Style Chatbot
+1. **Current Events**: Ask about recent news (the chatbot will search for up-to-date information)
+2. **Political Questions**: Get responses in Arnab Goswami's dramatic style
+3. **Follow-up Questions**: The chatbot maintains context for natural conversation flow
+
+### Bluey Style Chatbot
+1. **Child-Friendly Interactions**: Ask questions suitable for children
+2. **Educational Content**: Learn about animals, planets, or other topics in a fun way
+3. **Imaginative Play**: Engage in pretend games and creative scenarios
 
 ## 🔍 Debug Mode Features
 
@@ -159,6 +184,22 @@ Explores the concept of tokenization, which is fundamental to how LLMs process t
 ### `nexttokenpredict.py` and `tokenprediction.py`
 These scripts demonstrate token prediction capabilities, showing how LLMs predict the next tokens in a sequence. This helps understand the underlying mechanics of text generation.
 
+## 🔒 Security Best Practices
+
+1. **API Key Protection**:
+   - Never commit API keys to version control
+   - Use environment variables or a separate config file that's excluded from Git
+   - Rotate API keys if they're accidentally exposed
+
+2. **Environment Variables**:
+   - Consider using `.env` files with the `python-dotenv` package
+   - This approach is more secure than hardcoding keys in your scripts
+
+3. **Child Safety** (for Bluey chatbot):
+   - The Bluey chatbot includes child-friendly search modifications
+   - Search queries are appended with "for kids" and use safe search settings
+   - Responses are designed to be appropriate for children
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to submit issues or pull requests.
@@ -179,6 +220,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Groq](https://groq.com/) for the LLM API
 - [Gradio](https://gradio.app/) for the web interface
 - [DuckDuckGo Search](https://github.com/deedy5/duckduckgo_search) for web search capabilities
+- Bluey character and concept by Ludo Studio
 
 ---
 
