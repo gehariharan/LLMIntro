@@ -15,9 +15,7 @@
 - **Package Installation**: Most frameworks are available via `pip`. Swarm and agentUniverse require GitHub cloning as they lack PyPI packages (based on typical open-source patterns). Verify package names on PyPI or GitHub for the latest setup instructions.
 - **Documentation Links**: Links point to official documentation or GitHub READMEs where dedicated docs are unavailable (e.g., Swarm, agentUniverse). URLs are current as of June 2025.
 - **Canvas Use**: Save as `MultiAgentFrameworks.md` in Obsidian or similar tools. Link frameworks (e.g., `[[AutoGen]]`) to detailed `.md` files for canvas visualization, or embed the table as a node.
-- **Sources**: Search results (web:0, web:1, web:3, web:5, web:7, web:8, web:12, web:13) informed new frameworks and package details. Prior context confirmed PydanticAI and AutoGen specifics.
-- **Pricing**: For related services (e.g., SuperGrok, x.com subscriptions), refer to [xAI](https://x.ai/grok) or [X Premium](https://help.x.com/en/using-x/x-premium).
-- **Verification**: Check GitHub repositories for the latest package versions or setup steps, especially for agentUniverse and Swarm, which may evolve rapidly.
+ **Verification**: Check GitHub repositories for the latest package versions or setup steps, especially for agentUniverse and Swarm, which may evolve rapidly.
 ```
 
 ### Details on Updates
@@ -58,17 +56,3 @@ In Obsidian:
 3. Embed the table directly in the canvas by referencing the file or create linked nodes for each framework (e.g., `[[AutoGen]]`) with detailed notes.
 4. Use the table’s links to external docs for quick access, or visualize relationships (e.g., AutoGen → CrewAI for enterprise use cases) in the canvas.
 
-### Additional Notes
-- **Search Result Context**: Web:0 (agentUniverse), web:1 (Agent Squad), and web:8 (Bee Agent) provided package and doc details. Web:5 (AutoGen Studio) and web:7 (CrewAI with Bedrock) confirmed active development. Web:2 (Prompting Evolved) was irrelevant, as it focused on agent workflows, not framework packages.
-- **X Post Context**: Post:0 (LLM releases) didn’t mention frameworks, so it’s not used here.
-- **Browser Optimization Relevance**: The table supports your earlier query about browsers for agents, as frameworks like PydanticAI integrate with tools like Browser Use for multi-agent web tasks. Package installation commands enable quick setup for such integrations.
-- **Limitations**: Some package names (e.g., `agent-squad`) are assumed based on conventions, as exact PyPI names may vary. Swarm and agentUniverse lack PyPI packages, requiring manual setup. If precise setup steps are needed, I can guide you to check GitHub or PyPI.
-- **Artifact ID**: The `artifact_id` is reused (`f8e616e0-d894-4936-a3f5-391682ee794c`) from the previous artifact, as this is an updated version of the same `.md` file, per the artifact guidelines.
-
-### Next Steps
-If you need:
-- A specific framework’s installation troubleshooting (e.g., PydanticAI setup).
-- A sample canvas layout for Obsidian or Notion with this table.
-- Code examples integrating a framework (e.g., AutoGen with Browser Use).
-- A different format (e.g., JSON, CSV) or additional columns (e.g., GitHub stars).
-Please clarify, and I’ll tailor the response! For pricing details on related services, refer to https://x.ai/grok or https://help.x.com/en/using-x/x-premium.
