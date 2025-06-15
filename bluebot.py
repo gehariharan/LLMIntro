@@ -6,6 +6,7 @@ from duckduckgo_search.exceptions import RatelimitException
 import os
 import json
 from datetime import datetime
+import numpy as np  # <-- Add this import for np
 
 # Configuration
 DEBUG_MODE = True  # Set to False to disable debug information
@@ -68,6 +69,74 @@ SUMMARIZE_ERROR_TEMPLATE = "Conversation on {} (failed to summarize)"
 llm_groq = ChatGroq(model_name=GROQ_MODEL_NAME, api_key=GROQ_API_KEY)
 
 import gradio as gr
+# Add FastRTC imports
+from fastrtc import WebRTC, ReplyOnPause
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.prebuilt import create_react_agent
+from loguru import logger
+
+# --- Bluey LLM Agent Setup (LangGraph style, like simple_math_agent.py) ---
+
+# Define Bluey's tools (add more if needed)
+def bluey_suggest_game():
+    """Suggest a fun game to play."""
+    return "Let's play 'Keepy Uppy'! Try to keep a balloon in the air as long as you can! Wackadoo! 🎈"
+
+tools = [bluey_suggest_game]
+
+system_prompt = SYSTEM_PROMPT  # Use your existing Bluey system prompt
+
+memory = InMemorySaver()
+
+bluey_agent = create_react_agent(
+    model=llm_groq,  # Use your existing Groq LLM
+    tools=tools,
+    prompt=system_prompt,
+    checkpointer=memory,
+)
+
+agent_config = {"configurable": {"thread_id": "default_user"}}
+
+# --- FastRTC Voice Handler using Bluey Agent ---
+from fastrtc.asr import faster_whisper_asr
+from fastrtc.tts import bark_tts
+
+def bluey_voice_agent(audio: tuple[int, np.ndarray], history, debug_output=None):
+    """Voice handler for Bluey using FastRTC ASR, Bluey agent, and FastRTC TTS."""
+    import tempfile
+    import soundfile as sf
+    import os
+    sr, audio_data = audio
+    # Save audio to temp file
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        sf.write(tmp.name, audio_data, sr)
+        tmp_path = tmp.name
+    # Transcribe audio using FastRTC's faster_whisper_asr
+    try:
+        transcript = faster_whisper_asr(tmp_path)
+    except Exception as e:
+        transcript = f"[Transcription failed: {e}]"
+    finally:
+        os.remove(tmp_path)
+    # Get Bluey's response from the agent
+    try:
+        response = bluey_agent.invoke(transcript, config=agent_config)
+        if hasattr(response, 'content'):
+            response_text = response.content
+        else:
+            response_text = str(response)
+    except Exception as e:
+        response_text = f"[Agent error: {e}]"
+    # Synthesize response to audio using FastRTC's bark_tts
+    try:
+        tts_audio, tts_sr = bark_tts(response_text)
+        # Resample if needed
+        if tts_sr != sr:
+            import librosa
+            tts_audio = librosa.resample(tts_audio, orig_sr=tts_sr, target_sr=sr)
+        return (sr, tts_audio.astype(np.float32))
+    except Exception as e:
+        return (sr, audio_data)
 
 def search_ddg(query):
     """Search DuckDuckGo for information"""
@@ -327,6 +396,56 @@ def initialize_memory_file():
     else:
         print(f"Using existing memory file at {os.path.abspath(MEMORY_FILE)}")
 
+def voice_response(audio: tuple[int, np.ndarray], history, debug_output=None):
+    """Process incoming audio, transcribe, chat, and return audio response as TTS."""
+    import numpy as np
+    import tempfile
+    import soundfile as sf
+    import os
+    import openai  # If you use OpenAI Whisper for transcription
+    from gtts import gTTS
+    import io
+
+    # Save audio to temp file
+    sr, audio_data = audio
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        sf.write(tmp.name, audio_data, sr)
+        tmp_path = tmp.name
+
+    # Transcribe audio (replace with your preferred ASR)
+    try:
+        transcript = ""
+        with open(tmp_path, "rb") as f:
+            transcript = openai.Audio.transcribe("whisper-1", f)["text"]
+    except Exception as e:
+        transcript = f"[Transcription failed: {e}]"
+    finally:
+        os.remove(tmp_path)
+
+    # Use chat logic to get response
+    response, debug = chat(transcript, history, debug_output)
+
+    # Synthesize response to audio using gTTS
+    try:
+        tts = gTTS(text=response, lang='en')
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tts_tmp:
+            tts.save(tts_tmp.name)
+            tts_path = tts_tmp.name
+        # Read the generated wav file
+        tts_audio, tts_sr = sf.read(tts_path)
+        os.remove(tts_path)
+        # If stereo, convert to mono
+        if len(tts_audio.shape) > 1:
+            tts_audio = tts_audio.mean(axis=1)
+        # Resample if needed
+        if tts_sr != sr:
+            import librosa
+            tts_audio = librosa.resample(tts_audio, orig_sr=tts_sr, target_sr=sr)
+        return (sr, tts_audio.astype(np.float32))
+    except Exception as e:
+        # On TTS failure, return original audio
+        return (sr, audio_data)
+
 # Create the appropriate interface based on debug mode
 if DEBUG_MODE:
     with gr.Blocks(css="footer {visibility: hidden}") as demo:
@@ -349,10 +468,21 @@ if DEBUG_MODE:
                     clear = gr.Button("Start New Game 🎮", variant="primary")
                     save_mem = gr.Button("Remember This Chat 💭")
 
+            with gr.TabItem("Voice Chat (Beta)"):
+                gr.Markdown("""
+                ## Talk to Bluey! 🎤
+                Press the mic and start speaking. Bluey will listen and reply in real time!
+                """)
+                audio_webrtc = WebRTC(mode="send-receive", modality="audio")
+                audio_webrtc.stream(
+                    fn=ReplyOnPause(lambda audio: bluey_voice_agent(audio, [], None)),
+                    inputs=[audio_webrtc], outputs=[audio_webrtc], time_limit=60
+                )
+
             with gr.TabItem("Debug Info"):
                 debug_output = gr.Markdown(DEFAULT_DEBUG_TEXT)
 
-            with gr.TabItem("Bluey's Memories"):
+            with gr.TabItem("Blue's Memories"):
                 memory_display = gr.Markdown(DEFAULT_MEMORY_TEXT)
                 refresh_memory = gr.Button("Refresh Memories")
 
